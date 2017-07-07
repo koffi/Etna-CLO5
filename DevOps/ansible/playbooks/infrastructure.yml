@@ -1,0 +1,63 @@
+# ansible playbook pour installer docker1.13 sur les 3vms et creer le docker swarm
+---
+- name: Deployer le cluster Docker Swarm
+  become: yes
+  hosts: manager:workers
+  remote_user: koffi_t
+ 
+# ce role permet de versionner sur le dépôt SVN du projet
+  roles:
+    - name: docker_swarm 
+  tasks:
+  
+    - name: add docker apt key
+      apt_key:
+        keyserver: hkp://p80.pool.sks-keyservers.net:80
+        id: 58118E89F3A912897C070ADBF76221572C52609D
+ 
+    - name: add docker apt repository
+      apt_repository:
+     
+        repo: 'deb https://apt.dockerproject.org/repo debian-jessie main > /etc/apt/sources.list.d/docker.list'
+        update_cache: yes
+       
+    - name: uninstall old docker
+      apt:
+        name: lxc-docker
+        purge: yes
+      failed_when: no  
+     
+    - name: get docker compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/1.5.2/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: 0755   
+    - name: install docker
+      apt:
+        name: docker-engine
+ 
+  # debut deploiement du cluster swarm
+    - name: create docker_swarm
+      add_host:
+        hostname: 172.16.231.7
+        run_once: true
+        shell: docker swarm init --advertise=172.16.231.7:2375
+
+ 
+    - name: create swarm_manager
+      add_host:
+        hostname: 172.16.231.7
+        run_once: true
+        shell: docker run -d swarm join --advertise=172.16.231.7:2375
+
+    - name: create swarm_worker node1
+      add_host:
+        hostname: 172.16.231.19
+        run_once: true
+        shell: docker run -d swarm join \--token  SWMTKN-1-49nj1cmql0jkz5s954yi3oex3nedyz0fb0xx14ie39trti4wxv-8vxv8rssmk743ojnwacrr2e7c \172.16.231.19:2375
+
+    - name: create swarm_worker node2
+      add_host:
+        hostname: 172.16.231.31
+        run_once: true
+        shell: docker run -d swarm join \--token  SWMTKN-1-49nj1cmql0jkz5s954yi3oex3nedyz0fb0xx14ie39trti4wxv-8vxv8rssmk743ojnwacrr2e7c \172.16.231.31:2375

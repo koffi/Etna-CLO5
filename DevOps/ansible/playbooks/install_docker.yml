@@ -1,0 +1,25 @@
+---
+- hosts: manager:workers 
+  remote_user: koffi_t
+  become: yes
+
+  tasks:
+  - name: Add docker repository key
+    apt_key:
+      keyserver: hkp://pgp.mit.edu:80
+      id: 58118E89F3A912897C070ADBF76221572C52609D
+
+  - name: Add docker repository
+    apt_repository:
+      repo: deb https://apt.dockerproject.org/repo debian-jessie main
+      filename: docker
+
+  - name: Install docker-engine package
+    apt:
+      name: docker-engine
+
+  - name: Add koffi_t user to docker group
+    user:
+      name: koffi_t
+      groups: docker
+      append: yes
