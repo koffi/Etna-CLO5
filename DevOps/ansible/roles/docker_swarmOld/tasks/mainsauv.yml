@@ -1,0 +1,35 @@
+---
+
+- hosts: manager
+  become: true
+
+  pre_tasks:
+    - shell: echo 'hello, Enjoy your journey with Docker'
+
+
+   tasks:
+    - name: create docker_swarm
+      add_host:
+        hostname: 172.16.231.7
+        run_once: true
+        shell: docker swarm init --advertise=172.16.231.7:2375
+   
+   tasks:
+    - name: create swarm_manager
+      add_host:
+        hostname: 172.16.231.7
+        run_once: true
+        shell: docker run -d swarm join --advertise=172.16.231.19:2375
+   tasks:
+    - name: create swarm_worker node1
+      add_host:
+        hostname: 172.16.231.19
+        run_once: true
+        shell: docker run -d swarm join --advertise=172.16.231.19:2375
+       
+   tasks:
+    - name: create swarm_worker node2
+      add_host:
+        hostname: 172.16.231.31
+        run_once: true
+        shell: docker run -d swarm join --advertise=172.16.231.31:2375
