@@ -1,0 +1,31 @@
+{
+  "name": "etna-devops",
+  "version": "1.0.0",
+  "description": "ETNA Devops Project",
+  "main": "src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/dridi-walid/etna-devops.git"
+  },
+  "scripts": {
+    "test": "npm run test:cucumber && npm run test:unit",
+    "test:cucumber": "./node_modules/.bin/cucumber.js",
+    "test:unit": "./node_modules/.bin/mocha --reporter spec test/**/*.test.js"
+  },
+  "author": "Etna Dev Team",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^4.0.2",
+    "cucumber": "^2.3.0",
+    "http-debug": "^0.1.2",
+    "mocha": "^3.4.2"
+  },
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "cors": "^2.8.3",
+    "express": "^4.15.3",
+    "mongoose": "^4.11.1",
+    "morgan": "^1.8.2",
+    "request": "^2.81.0"
+  }
+}

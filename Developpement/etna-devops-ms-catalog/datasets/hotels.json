@@ -1,0 +1,2 @@
+{ "_id" : { "$oid" : "596285aa34271b00050934c0" }, "name" : "George V", "type" : 1, "address" : "Paris 8ème", "latitude" : 42.7, "longitude" : 2.5, "attributes" : null, "services" : null, "medias" : null }
+{ "_id" : { "$oid" : "59628de134271b00050934c2" }, "name" : "Velana Beach", "type" : 1, "address" : "Maafushi", "latitude" : 45.1, "longitude" : 1.78, "attributes" : null, "services" : null, "medias" : null }

@@ -1,0 +1,8 @@
+[{
+  "script": "src/catalog/index.js",
+  "args": ["-p", "7001"],
+  "name": "etna.catalog",
+  "exec_mode": "fork",
+  "watch": true,
+  "watch_options" : {"usePolling": true}
+}]

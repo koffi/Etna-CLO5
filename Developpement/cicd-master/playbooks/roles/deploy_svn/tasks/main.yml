@@ -1,0 +1,51 @@
+---
+
+- hosts: manager:localhost
+  become: true
+  remote_user: koffi_t
+
+  pre_tasks:
+    - shell: echo 'hello, Enjoy your journey with Docker'
+
+
+  tasks:
+    - name: Include OS-specific variables.
+      include_vars: "{{ ansible_os_family }}.yml"
+      - name: Ensure SVN packages are installed (Debian).
+        apt: name={{ item }} state=installed
+        with_items:
+         - subversion
+         - libapache2-svn
+        when: ansible_os_family == 'Debian'
+       
+    - name: Ensure svn home folder exists.
+      file:
+      path: "{{ svn_repository_home }}"
+      state: directory
+
+    - name: Copy subversion configuration file.
+      template:
+      src: subversion.conf.j2
+      dest: "{{ svn_apache_conf_path }}/subversion.conf"
+      owner: root
+      group: root
+      notify: restart apache
+
+    - name: Create a test repository.
+      command: >
+      svnadmin create testrepo
+      chdir={{ svn_repository_home }}
+      creates={{ svn_repository_home }}/testrepo/README.txt
+      when: svn_create_test_repo
+     
+      # Workaround for bug https://github.com/ansible/ansible-modules-core/issues/915.
+    - name: Run systemd daemon_reload (Ubuntu/Debian workaround).
+      systemd:
+      name: svnserve
+      daemon_reload: yes
+      when: >
+          (svn_init_copy.changed)
+           and ansible_os_family == 'Debian'
+           and "ansible_service_mgr == 'systemd'"
+    - name: Ensure SVN is started.
+      service: name=svnserve state=started enabled=yes

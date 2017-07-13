@@ -1,0 +1,73 @@
+$script = <<SCRIPT
+    # Install Docker
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+    sudo apt-get update
+    sudo apt-get install -y docker-ce
+
+    # Pull mongo & mongo-express docker images
+    sudo docker pull mongo
+    sudo docker pull mongo-express
+
+    # Run & link mongo & mongo-express docker containers
+    sudo docker run --name etna-devops-mongo -p 27017:27017 -d --restart unless-stopped mongo
+    sudo docker run --name etna-devops-mongo-express -p 8081:8081 --link etna-devops-mongo:mongo -d --restart unless-stopped mongo-express
+
+    # Install nodejs & npm
+    curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+    sudo apt-get install -y nodejs
+    sudo apt-get install -y build-essential
+
+    # Install npm dependencies
+    cd /vagrant
+    npm install
+
+    # Install & launch pm2 process manager
+    sudo npm install pm2 -g
+    sudo pm2 startup
+    sudo pm2 start microservices.json
+    sudo pm2 list
+    sudo chown vagrant:vagrant /home/vagrant/.pm2/ -R
+
+    # Import collection datasetes
+    sudo apt install -y mongodb-clients
+    cd /vagrant
+    ./scripts/mongo_import_db.sh
+
+
+SCRIPT
+
+Vagrant.require_version ">= 1.5"
+
+Vagrant.configure("2") do |config|
+
+    config.vm.provider :virtualbox do |v|
+        v.gui = false
+        v.name = "etna.deveops.env"
+        v.customize [
+            "modifyvm", :id,
+            "--name", "etna.devops.env",
+            "--memory", 1024,
+            "--natdnshostresolver1", "on",
+            "--cpus", 1,
+        ]
+    end
+
+    config.vm.box = "ubuntu/trusty64"
+
+    config.vm.box_url = "https://vagrantcloud.com/ubuntu/boxes/trusty64/versions/14.04/providers/virtualbox.box"
+
+    config.vm.network :private_network, ip: "192.168.33.99"
+    #config.vm.hostname = "local.etna.devops"
+    config.ssh.forward_agent = true
+
+    config.vm.provision :shell, inline: $script
+
+    #config.vm.provision :puppet do |puppet|
+        #puppet.manifests_path = "puppet/manifests"
+        #puppet.module_path    = "puppet/modules"
+        #puppet.manifest_file  = "site.pp"
+    #end
+
+    config.vm.synced_folder ".", "/vagrant", create: true
+end

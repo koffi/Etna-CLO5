@@ -1,0 +1,43 @@
+# ansible playbook pour installer docker1.13 sur les 3vms et creer le docker swarm
+---
+- name: Deployer le cluster Docker Swarm
+  become: yes
+  hosts: manager:workers
+  remote_user: koffi_t
+  
+# definition des roles
+  roles:
+
+    # ce role permet de versionner sur le dépôt SVN du projet
+    #- name: deploy_svn
+
+
+    # # ce role permet d'installer docker sur les differents noeuds
+
+    - name: docker_install
+        
+
+   
+  hosts: manager
+  remote_user: koffi_t
+  tasks:
+
+    # desinstallation du mode swarm 
+    - name: desinstaller swarm mode 
+      shell: docker swarm leave --force
+
+    # configuration du mode swarm 
+    - name: config swarm mode
+      command: docker swarm init
+      register: result0
+    - debug: var=result0
+
+    - name: recuperation du token  
+      shell: echo "{{result0.stdout}}" | awk '{ print $5 }' | tr '[\n]' ' ' | awk '{ print $3 }'
+      register: TOKEN_SWARM
+    - debug: var=TOKEN_SWARM
+
+
+    - name: create swarm_manager
+  
+      shell: docker swarm join-token manager
